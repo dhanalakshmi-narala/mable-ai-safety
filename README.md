@@ -32,7 +32,7 @@ This code was originally presented at re:Invent 2019, session ID SVS214.
 1. From the command line, run:
 ```
 sam build
-sam deploy --template-file packaged.yaml --capabilities CAPABILITY_IAM --stack-name auto-transcriber --region <<enter your region>> --parameter-overrides InputBucketName=<<enter translation bucket name>>
+sam deploy --template-file packaged.yaml --capabilities CAPABILITY_IAM --stack-name auto-transcriber --region us-east-1 --parameter-overrides InputBucketName=
 ```
 
 ## Parameter Details

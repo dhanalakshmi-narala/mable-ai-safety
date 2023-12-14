@@ -5,7 +5,7 @@ Description: Auto-transcriber and sentiment analyzer
 Parameters:
   InputBucketName:
     Type: String
-    Default: 'myTranscribeBucket'
+    Default: 'mable-audio-files'
 
 Globals:
   Function:
@@ -33,7 +33,7 @@ Resources:
     Properties:
       CodeUri: sentimentFunction/
       Handler: app.handler
-      Runtime: nodejs12.x
+      Runtime: nodejs18.x
       MemorySize: 128
       Environment:
         Variables:
@@ -66,7 +66,7 @@ Resources:
     Properties:
       CodeUri: transcribeFunction/
       Handler: app.handler
-      Runtime: nodejs12.x
+      Runtime: nodejs18.x
       MemorySize: 128
       Policies:
         - S3CrudPolicy:
