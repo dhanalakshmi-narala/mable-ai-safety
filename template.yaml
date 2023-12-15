@@ -17,30 +17,14 @@ Resources:
     Properties:
       BucketName: !Ref InputBucketName
 
-  ResultsDDBtable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-      - AttributeName: partitionKey
-        AttributeType: S
-      KeySchema:
-      - AttributeName: partitionKey
-        KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
-
   SentimentFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: sentimentFunction/
       Handler: app.handler
       Runtime: nodejs18.x
-      MemorySize: 128
-      Environment:
-        Variables:
-          ddbTable: !Ref ResultsDDBtable      
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ResultsDDBtable        
+      MemorySize: 128     
+      Policies:        
         - S3CrudPolicy:
             BucketName: !Ref InputBucketName
         - Statement:

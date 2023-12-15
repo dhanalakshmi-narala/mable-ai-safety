@@ -47,6 +47,8 @@ exports.handler = async (event) => {
        
         
         console.log ('sentiment: ', {sentiment})
+        // .json====> needed words,
+        // sentiment===>
       })
     )
   } catch (err) {
@@ -57,7 +59,7 @@ exports.handler = async (event) => {
 const doSentimentAnalysis = async (Text) => {
   const params = {
     LanguageCode: 'en',
-    TextSegment: Text
+    TextSegments: Text.split(' ')
   }
 
   const result = await comprehend.detectToxicContent(params).promise()
