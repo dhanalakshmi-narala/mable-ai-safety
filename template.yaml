@@ -75,7 +75,7 @@ Resources:
           - Effect: Allow
             Resource: '*'
             Action:
-              - transcribe:StartTranscriptionJob
+              - transcribe:*
               - cloudwatch:GetMetricStatistics
               - cloudwatch:ListMetrics
       Events:

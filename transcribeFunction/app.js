@@ -28,6 +28,24 @@ exports.handler = async (event) => {
   console.log (JSON.stringify(event, null, 2))
 
   try {
+    const filterResponse = transcribeService.createVocabularyFilter({
+      VocabularyFilterName: 'mable-sp-sos-vocabulary',
+      LanguageCode, 
+      Words:  ['help', 'get out', 'urgent', '123']
+    }, (err, data) => {
+      console.log({data, err})
+    })
+
+    console.log({filterResponse});
+
+    const input = { 
+      VocabularyFilterName: "mable-sp-sos-vocabulary", // required
+    };
+    const getResp = transcribeService.getVocabularyFilter(input, (err, data) => {
+      console.log({data, err})
+    });
+    console.log({getResp});
+
     await Promise.all(
       records.map((record) => {
         const mediaUrl = `https://s3.amazonaws.com/${record.s3.bucket.name}/${record.s3.object.key}`
@@ -46,7 +64,11 @@ exports.handler = async (event) => {
             { 
                 ToxicityCategories: ['ALL']
             }
-        ]
+          ],
+          Settings: {
+            VocabularyFilterMethod: 'tag',
+            VocabularyFilterName: 'mable-sp-sos-vocabulary'
+          }
         }).promise()
       })
     )
