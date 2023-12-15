@@ -42,26 +42,11 @@ exports.handler = async (event) => {
 
         // Do sentiment analysis
         console.log('Transcript: ', transcript)
+        //TODO Here we have do analysis on the result we got from the Transcribe and (toxic from Comprehend Or toxic from Transcribe file)
         const sentiment = await doSentimentAnalysis(transcript)
        
-        // Store in DynamoDB
-        const params = {
-          TableName: process.env.ddbTable,
-          Item: {
-            partitionKey: record.s3.object.key,
-            transcript, 
-            created: Math.floor(Date.now() / 1000),
-            Sentiment: sentiment.Sentiment,
-            Positive: sentiment.SentimentScore.Positive,
-            Negative: sentiment.SentimentScore.Negative,
-            Neutral: sentiment.SentimentScore.Neutral,
-            Mixed: sentiment.SentimentScore.Mixed          
-          }
-        }
-
-        console.log('Params: ', params)
-        const ddbResult = await documentClient.put(params).promise()
-        console.log ('DDBresult: ', ddbResult)
+        
+        console.log ('sentiment: ', {sentiment})
       })
     )
   } catch (err) {
@@ -72,10 +57,10 @@ exports.handler = async (event) => {
 const doSentimentAnalysis = async (Text) => {
   const params = {
     LanguageCode: 'en',
-    Text
+    TextSegment: Text
   }
 
-  const result = await comprehend.detectSentiment(params).promise()
+  const result = await comprehend.detectToxicContent(params).promise()
   console.log('doSentimentAnalysis: ', result)
   return result
 }

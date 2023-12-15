@@ -31,20 +31,10 @@ exports.handler = async (event) => {
     const filterResponse = transcribeService.createVocabularyFilter({
       VocabularyFilterName: 'mable-sp-sos-vocabulary',
       LanguageCode, 
-      Words:  ['help', 'get out', 'urgent', '123']
+      Words:  ['help', 'getout', 'urgent', '123'],
     }, (err, data) => {
       console.log({data, err})
     })
-
-    console.log({filterResponse});
-
-    const input = { 
-      VocabularyFilterName: "mable-sp-sos-vocabulary", // required
-    };
-    const getResp = transcribeService.getVocabularyFilter(input, (err, data) => {
-      console.log({data, err})
-    });
-    console.log({getResp});
 
     await Promise.all(
       records.map((record) => {
@@ -60,11 +50,6 @@ exports.handler = async (event) => {
           MediaFormat: 'mp3',
           TranscriptionJobName,
           OutputBucketName: record.s3.bucket.name,
-          ToxicityDetection:  [ 
-            { 
-                ToxicityCategories: ['ALL']
-            }
-          ],
           Settings: {
             VocabularyFilterMethod: 'tag',
             VocabularyFilterName: 'mable-sp-sos-vocabulary'
@@ -72,6 +57,31 @@ exports.handler = async (event) => {
         }).promise()
       })
     )
+
+    //If necessary we do Toxicity detection also
+    await Promise.all(
+      records.map((record) => {
+        const mediaUrl = `https://s3.amazonaws.com/${record.s3.bucket.name}/${record.s3.object.key}`
+        const TranscriptionJobName = `toxicDetection-${record.s3.object.key}-${Date.now()}`
+    
+        console.log('S3 object: ', mediaUrl)
+        console.log('Job name: ', TranscriptionJobName)
+
+        return transcribeService.startTranscriptionJob({
+          LanguageCode,
+          Media: { MediaFileUri: mediaUrl },
+          MediaFormat: 'mp3',
+          TranscriptionJobName,
+          OutputBucketName: record.s3.bucket.name,
+          ToxicityDetection:  [ 
+            { 
+                ToxicityCategories: ['ALL']
+            }
+          ],
+        }).promise()
+      })
+    )
+
   } catch (err) {
     console.error(err)
   }
