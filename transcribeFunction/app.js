@@ -25,7 +25,7 @@ const LanguageCode = 'en-US'
 transcribeService.createVocabularyFilter({
   VocabularyFilterName: 'mable-sp-sos-vocabulary',
   LanguageCode,
-  Words: ['help', 'getout', 'urgent', 'danger', 'unsafe', 'kill'],
+  Words: ['help', 'sos', 'getout', 'urgent', 'danger', 'unsafe', 'kill'],
 }, (err, data) => {
   console.log({ data, err })
 })
