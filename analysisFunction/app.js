@@ -17,38 +17,44 @@
 
 const AWS = require('aws-sdk')
 AWS.config.region = process.env.AWS_REGION
-const comprehend = new AWS.Comprehend()
 
-const { getS3object, putS3object }  = require('./s3')
-const documentClient = new AWS.DynamoDB.DocumentClient()
+const { createTransport } = require('nodemailer');
+const { getS3object } = require('./s3')
+
+const transporter = createTransport({
+  host: 'smtp.ethereal.email',
+  port: 587,
+  auth: {
+    user: 'daija.stroman49@ethereal.email',
+    pass: 'U83FSdFyF4ejSYjm27'
+  }
+});
 
 exports.handler = async (event) => {
   const records = event.Records
-  console.log (JSON.stringify(event, null, 2))
+  console.log(JSON.stringify(event, null, 2))
 
   try {
     await Promise.all(
       records.map(async (record) => {
         console.log('Incoming record: ', record)
 
+        const bucketName = record.s3.bucket.name;
         // Load JSON object
         const response = await getS3object({
-          Bucket: record.s3.bucket.name,
+          Bucket: bucketName,
           Key: record.s3.object.key
         })
         // Extract the transcript
         const originalText = JSON.parse(response.Body.toString('utf-8'))
-        const transcript = originalText.results.transcripts[0].transcript
 
-        // Do sentiment analysis
-        console.log('Transcript: ', transcript)
-        //TODO Here we have do analysis on the result we got from the Transcribe and (toxic from Comprehend Or toxic from Transcribe file)
-        const sentiment = await doSentimentAnalysis(transcript)
-       
-        
-        console.log ('sentiment: ', {sentiment})
-        // .json====> needed words,
-        // sentiment===>
+
+        console.log('----- originalText', originalText.toxicity_detection);
+
+        // if (originalText.toxicity_detection) {
+        //   originalText.toxicity_detection.categories
+        // }
+
       })
     )
   } catch (err) {
@@ -56,13 +62,24 @@ exports.handler = async (event) => {
   }
 }
 
-const doSentimentAnalysis = async (Text) => {
-  const params = {
-    LanguageCode: 'en',
-    TextSegments: Text.split(' ')
-  }
+const sendMail = async () => {
+  const mailOptions = {
+    from: 'daija.stroman49@ethereal.email',
+    to: 'dhanalakshmi.narala@mable.com.au',
+    subject: `Incident detected`,
+    text: `SP or client is at risk. Please act immediately`
+  };
 
-  const result = await comprehend.detectToxicContent(params).promise()
-  console.log('doSentimentAnalysis: ', result)
-  return result
+  const resp = await transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+
+  console.log({ resp })
 }
+
+
+

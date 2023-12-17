@@ -22,27 +22,28 @@ const transcribeService = new AWS.TranscribeService()
 // Language list: [en-IE, ar-AE, te-IN, en-US, en-AB, ta-IN, en-IN, ar-SA, zh-CN, gd-GB, tr-TR, id-ID, nl-NL, es-ES, pt-PT, ru-RU, it-IT, fr-FR, de-DE, ga-IE, af-ZA, ko-KR, de-CH, hi-IN, cy-GB, ms-MY, he-IL, da-DK, en-AU, en-WL, pt-BR, fa-IR, ja-JP, es-US, en-GB, fr-CA]
 const LanguageCode = 'en-US'
 
+transcribeService.createVocabularyFilter({
+  VocabularyFilterName: 'mable-sp-sos-vocabulary',
+  LanguageCode,
+  Words: ['help', 'getout', 'urgent', 'danger', 'unsafe', 'kill'],
+}, (err, data) => {
+  console.log({ data, err })
+})
+
 exports.handler = async (event) => {
   const records = event.Records
   console.log(records);
-  console.log (JSON.stringify(event, null, 2))
+  console.log(JSON.stringify(event, null, 2))
 
   try {
-    const filterResponse = transcribeService.createVocabularyFilter({
-      VocabularyFilterName: 'mable-sp-sos-vocabulary',
-      LanguageCode, 
-      Words:  ['help', 'getout', 'urgent', '123'],
-    }, (err, data) => {
-      console.log({data, err})
-    })
-
     await Promise.all(
       records.map((record) => {
         const mediaUrl = `https://s3.amazonaws.com/${record.s3.bucket.name}/${record.s3.object.key}`
-        const TranscriptionJobName = `${record.s3.object.key}-${Date.now()}`
-    
+        const TranscriptionJobName = `tagged-${record.s3.object.key}-${Date.now()}`
+
         console.log('S3 object: ', mediaUrl)
         console.log('Job name: ', TranscriptionJobName)
+
 
         return transcribeService.startTranscriptionJob({
           LanguageCode,
@@ -62,8 +63,8 @@ exports.handler = async (event) => {
     await Promise.all(
       records.map((record) => {
         const mediaUrl = `https://s3.amazonaws.com/${record.s3.bucket.name}/${record.s3.object.key}`
-        const TranscriptionJobName = `toxicDetection-${record.s3.object.key}-${Date.now()}`
-    
+        const TranscriptionJobName = `toxicity-detected-${record.s3.object.key}-${Date.now()}`
+
         console.log('S3 object: ', mediaUrl)
         console.log('Job name: ', TranscriptionJobName)
 
@@ -73,9 +74,9 @@ exports.handler = async (event) => {
           MediaFormat: 'mp3',
           TranscriptionJobName,
           OutputBucketName: record.s3.bucket.name,
-          ToxicityDetection:  [ 
-            { 
-                ToxicityCategories: ['ALL']
+          ToxicityDetection: [
+            {
+              ToxicityCategories: ['ALL']
             }
           ],
         }).promise()
